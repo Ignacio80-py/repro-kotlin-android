@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+
+    <!-- Contenido del SVG proporcionado por el usuario, escalado y centrado -->
+    <group
+        android:scaleX="0.5"
+        android:scaleY="0.5"
+        android:translateX="362"
+        android:translateY="287">
+        <path
+            android:fillColor="@color/red"
+            android:pathData="M303.667,782.316 A65.984,65.984 0 1,1 303.667,650.348 A65.984,65.984 0 1,1 303.667,782.316z" />
+        <path
+            android:fillColor="@color/red"
+            android:pathData="M544.333,0H63C28.206,0,0,28.206,0,63v889.333c0,34.794,28.206,63,63,63h481.333c34.794,0,63-28.206,63-63 V63C607.333,28.206,579.127,0,544.333,0z M303.667,903.998C200.021,903.998,116,819.977,116,716.332 c0-103.646,84.021-187.667,187.667-187.667c103.645,0,187.667,84.021,187.667,187.667 C491.333,819.977,407.312,903.998,303.667,903.998z M553,429.332H54.333V54.665H553V429.332z" />
+    </group>
+
+</vector>
