@@ -66,12 +66,10 @@ class MainActivity : AppCompatActivity() {
             val binder = service as MusicService.MusicBinder
             musicService = binder.getService()
 
-            // setMainActivity ya sincroniza todo (ver Paso 7)
             musicService?.setMainActivity(this@MainActivity)
             isBound = true
             musicService?.hideNotification()
 
-            // updatePlayPauseButton() y onSongChanged() ya se llaman en updateUIFromService()
             initializeSeekBar()
         }
 
@@ -155,7 +153,6 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         saveLastSession()
         if (isBound) {
-            // Si la música está sonando y la app pasa a segundo plano, muestra la notificación.
             if (musicService?.isPlaying() == true) {
                 musicService?.showNotification()
             }
@@ -178,7 +175,7 @@ class MainActivity : AppCompatActivity() {
             val deleteButton = view.findViewById<ImageButton>(R.id.delete_song_button)
 
             val uri = songs[position]
-            songTitleText.text = getSongName(uri)
+            songTitleText.text = musicService?.getSongName(uri) ?: ""
 
             view.setOnClickListener { onPlay(position) }
             deleteButton.setOnClickListener { onDelete(position, this) }
@@ -376,7 +373,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSongSelectionDialog(playlistName: String) {
-        val songTitles = playlist.map { getSongName(it) }.toTypedArray()
+        val songTitles = playlist.map { musicService?.getSongName(it) ?: "" }.toTypedArray()
         val selectedItems = BooleanArray(songTitles.size)
         val selectedSongs = mutableListOf<Uri>()
 
@@ -590,7 +587,7 @@ class MainActivity : AppCompatActivity() {
         if (index < 0 || index >= playlist.size) return
 
         val uri = playlist[index]
-        val title = getSongName(uri)
+        val title = musicService?.getSongName(uri) ?: ""
 
         musicService?.let { service ->
             service.setPlaylist(playlist, index)
@@ -605,17 +602,6 @@ class MainActivity : AppCompatActivity() {
             totalTimeTextView.text = getString(R.string.time_format_with_minus, formatTime(it.duration.toLong()))
             progressBar.max = it.duration
         }
-    }
-
-    fun getSongName(uri: Uri): String {
-        try {
-            contentResolver.query(uri, arrayOf(MediaStore.Audio.Media.DISPLAY_NAME), null, null, null)?.use {
-                if (it.moveToFirst()) return it.getString(0)
-            }
-        } catch (_: SecurityException) {
-            return getString(R.string.access_denied)
-        }
-        return getString(R.string.unknown_song)
     }
 
     private fun saveLastSession() {
@@ -638,7 +624,7 @@ class MainActivity : AppCompatActivity() {
             currentSongIndex = sharedPrefs.getInt("last_song_index", -1)
 
             if (playlist.isNotEmpty() && currentSongIndex != -1 && currentSongIndex < playlist.size) {
-                songTitleTextView.text = getSongName(playlist[currentSongIndex])
+                songTitleTextView.text = musicService?.getSongName(playlist[currentSongIndex]) ?: ""
                 totalTimeTextView.text = getString(R.string.time_format_with_minus, getString(R.string.time_format, 0, 0))
                 currentTimeTextView.text = getString(R.string.time_format, 0, 0)
                 progressBar.progress = 0
@@ -680,7 +666,7 @@ class MainActivity : AppCompatActivity() {
         musicService?.let { service ->
             currentSongIndex = service.getCurrentIndex()
             if (currentSongIndex >= 0 && currentSongIndex < playlist.size) {
-                songTitleTextView.text = getSongName(playlist[currentSongIndex])
+                songTitleTextView.text = musicService?.getSongName(playlist[currentSongIndex]) ?: ""
                 service.getMediaPlayer()?.let { mp ->
                     totalTimeTextView.text = getString(R.string.time_format_with_minus, formatTime(mp.duration.toLong()))
                     progressBar.max = mp.duration
