@@ -4,59 +4,56 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:padding="16dp"
     tools:context=".MainActivity">
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_top"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_begin="56dp" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_bottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_end="56dp" />
-
+    <!-- Header -->
     <TextView
         android:id="@+id/app_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="56dp"
         android:text="@string/app_name"
         android:textColor="@color/red"
         android:textSize="34sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guideline_top" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/open_files_button"
         style="@style/Widget.AppCompat.Button.Borderless"
-        android:layout_width="112dp"
-        android:layout_height="112dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginTop="16dp"
         android:contentDescription="@string/open_files_description"
+        android:padding="20dp"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_folder"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/app_title"
         app:tint="@color/red" />
 
+    <!-- Song Title -->
+
+
+    <!-- Footer -->
     <TextView
         android:id="@+id/song_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="28dp"
         android:layout_marginEnd="32dp"
         android:text="@string/ninguna_cancion_seleccionada"
         android:textAlignment="center"
         android:textColor="@android:color/white"
-        android:textSize="16sp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/open_files_button" />
 
@@ -64,131 +61,122 @@
         android:id="@+id/footer_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="32dp"
         android:text="@string/footer_text"
         android:textColor="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="@id/guideline_bottom"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Bottom Control Row -->
     <LinearLayout
         android:id="@+id/bottom_controls"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:baselineAligned="false"
         android:gravity="center"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@id/footer_text"
+        app:layout_constraintBottom_toTopOf="@+id/footer_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- Timer Group -->
-        <LinearLayout
+        <ImageButton
+            android:id="@+id/timer_button"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:contentDescription="@string/sleep_timer"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_timer"
+            app:tint="@color/red" />
 
-            <ImageButton
-                android:id="@+id/timer_button"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:contentDescription="@string/sleep_timer"
-                android:src="@drawable/ic_timer"
-                app:tint="@color/red" />
-
-            <TextView
-                android:id="@+id/timer_countdown_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:visibility="gone"
-                tools:text="14:59" />
-        </LinearLayout>
-
-        <!-- Current Playlist Group -->
-        <LinearLayout
+        <ImageButton
+            android:id="@+id/current_playlist_button"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:layout_weight="1"
-            android:gravity="center">
+            android:contentDescription="@string/current_playlist"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_playlist_play"
+            app:tint="@color/red" />
 
-            <ImageButton
-                android:id="@+id/current_playlist_button"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:contentDescription="@string/current_playlist"
-                android:src="@drawable/ic_playlist_play"
-                app:tint="@color/red" />
-        </LinearLayout>
-
-        <!-- Create Playlist Group -->
-        <LinearLayout
+        <ImageButton
+            android:id="@+id/create_playlist_button"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:layout_weight="1"
-            android:gravity="center">
-
-            <ImageButton
-                android:id="@+id/create_playlist_button"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:contentDescription="@string/create_new_playlist"
-                android:src="@drawable/ic_playlist_music"
-                app:tint="@color/red" />
-        </LinearLayout>
+            android:contentDescription="@string/create_new_playlist"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_playlist_music"
+            app:tint="@color/red" />
     </LinearLayout>
 
+    <!-- Shuffle / Repeat / Timer Row -->
     <LinearLayout
         android:id="@+id/extra_controls"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        android:gravity="center"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@id/bottom_controls"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-            <ImageButton
-                android:id="@+id/shuffle_button"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:contentDescription="@string/shuffle_description"
-                android:src="@drawable/ic_shuffle"
-                app:tint="@color/red" />
+        <ImageButton
+            android:id="@+id/shuffle_button"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:contentDescription="@string/shuffle_description"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_shuffle"
+            app:tint="@color/red" />
 
-            <Space
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
-            <ImageButton
-                android:id="@+id/repeat_button"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:contentDescription="@string/repeat_description"
-                android:src="@drawable/ic_repeat"
-                app:tint="@color/red" />
+        <TextView
+            android:id="@+id/timer_countdown_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:visibility="gone"
+            tools:text="14:59" />
 
-        </LinearLayout>
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
+        <ImageButton
+            android:id="@+id/repeat_button"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:contentDescription="@string/repeat_description"
+            android:padding="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_repeat"
+            app:tint="@color/red" />
+
+    </LinearLayout>
+
+    <!-- Progress Bar -->
     <LinearLayout
         android:id="@+id/progress_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -222,46 +210,50 @@
             android:textColor="@android:color/white" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/playback_controls"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+    <!-- Main Playback Controls -->
+    <ImageButton
+        android:id="@+id/play_pause_button"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
         android:layout_marginBottom="8dp"
-        android:gravity="center"
-        android:orientation="horizontal"
+        android:contentDescription="@string/play_pause_description"
+        android:padding="24dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_play"
         app:layout_constraintBottom_toTopOf="@id/progress_container"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:tint="@color/red" />
 
-        <ImageButton
-            android:id="@+id/previous_button"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="64dp"
-            android:layout_weight="1"
-            android:contentDescription="@string/previous"
-            android:src="@drawable/ic_previous"
-            app:tint="@color/red" />
+    <ImageButton
+        android:id="@+id/previous_button"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginEnd="16dp"
+        android:contentDescription="@string/previous"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_previous"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause_button"
+        app:layout_constraintEnd_toStartOf="@id/play_pause_button"
+        app:layout_constraintTop_toTopOf="@id/play_pause_button"
+        app:tint="@color/red" />
 
-        <ImageButton
-            android:id="@+id/play_pause_button"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="64dp"
-            android:layout_weight="1"
-            android:contentDescription="@string/play_pause_description"
-            android:src="@drawable/ic_play"
-            app:tint="@color/red" />
-
-        <ImageButton
-            android:id="@+id/next_button"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="0dp"
-            android:layout_height="64dp"
-            android:layout_weight="1"
-            android:contentDescription="@string/next"
-            android:src="@drawable/ic_next"
-            app:tint="@color/red" />
-    </LinearLayout>
+    <ImageButton
+        android:id="@+id/next_button"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginStart="16dp"
+        android:contentDescription="@string/next"
+        android:padding="16dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_next"
+        app:layout_constraintBottom_toBottomOf="@id/play_pause_button"
+        app:layout_constraintStart_toEndOf="@id/play_pause_button"
+        app:layout_constraintTop_toTopOf="@id/play_pause_button"
+        app:tint="@color/red" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

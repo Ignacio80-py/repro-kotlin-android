@@ -12,5 +12,19 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">#000000</item>
         <!-- Customize your theme here. -->
+        <item name="alertDialogTheme">@style/CustomDialogTheme</item>
+    </style>
+
+    <style name="CustomDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <!-- Fondo del diálogo -->
+        <item name="android:windowBackground">@android:color/white</item>
+        <!-- Color del título -->
+        <item name="android:textColorPrimary">@color/red</item>
+        <!-- Color de los items de la lista -->
+        <item name="android:textColorAlertDialogListItem">@android:color/black</item>
+        <!-- Color del cuerpo del mensaje -->
+        <item name="android:textColorSecondary">@android:color/black</item>
+        <!-- Color de los botones -->
+        <item name="colorAccent">@color/red</item>
     </style>
 </resources>

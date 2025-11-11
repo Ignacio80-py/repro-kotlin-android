@@ -176,6 +176,7 @@ class MainActivity : AppCompatActivity() {
 
             val uri = songs[position]
             songTitleText.text = musicService?.getSongName(uri) ?: ""
+            deleteButton.setColorFilter(ContextCompat.getColor(context, R.color.red), PorterDuff.Mode.SRC_IN)
 
             view.setOnClickListener { onPlay(position) }
             deleteButton.setOnClickListener { onDelete(position, this) }
@@ -201,7 +202,7 @@ class MainActivity : AppCompatActivity() {
             adapter.notifyDataSetChanged()
         })
 
-        dialog = AlertDialog.Builder(this)
+        dialog = AlertDialog.Builder(this, R.style.CustomDialogTheme)
             .setTitle(getString(R.string.current_playlist))
             .setAdapter(adapter, null)
             .setNegativeButton(getString(R.string.close), null)
@@ -246,7 +247,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val timerOptions = arrayOf(getString(R.string.minutes_15), getString(R.string.minutes_30), getString(R.string.minutes_60))
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.CustomDialogTheme)
             .setTitle(getString(R.string.sleep_timer))
             .setItems(timerOptions) { _, which ->
                 val minutes = when (which) {
@@ -296,7 +297,7 @@ class MainActivity : AppCompatActivity() {
 
         val dialogOptions = playlistNames.toTypedArray<CharSequence>() + getString(R.string.create_new_playlist)
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.CustomDialogTheme)
             .setTitle(getString(R.string.favorite_playlists))
             .setItems(dialogOptions) { _, which ->
                 if (which == dialogOptions.size - 1) {
@@ -311,7 +312,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showLoadOrDeletePlaylistDialog(playlistName: String) {
         val options = arrayOf(getString(R.string.load), getString(R.string.delete))
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.CustomDialogTheme)
             .setTitle(playlistName)
             .setItems(options) { _, which ->
                 when (which) {
@@ -323,7 +324,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showDeleteConfirmationDialog(playlistName: String) {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.CustomDialogTheme)
             .setTitle(getString(R.string.delete_playlist_title))
             .setMessage(getString(R.string.delete_playlist_message, playlistName))
             .setPositiveButton(getString(R.string.delete)) { _, _ ->
@@ -355,9 +356,11 @@ class MainActivity : AppCompatActivity() {
         val input = EditText(this).apply {
             inputType = InputType.TYPE_CLASS_TEXT
             hint = getString(R.string.playlist_name_hint)
+            setTextColor(ContextCompat.getColor(this@MainActivity, android.R.color.black))
+            backgroundTintList = ContextCompat.getColorStateList(this@MainActivity, android.R.color.black)
         }
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.CustomDialogTheme)
             .setTitle(getString(R.string.create_new_playlist))
             .setView(input)
             .setPositiveButton(getString(R.string.next)) { _, _ ->
@@ -377,7 +380,7 @@ class MainActivity : AppCompatActivity() {
         val selectedItems = BooleanArray(songTitles.size)
         val selectedSongs = mutableListOf<Uri>()
 
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.CustomDialogTheme)
             .setTitle(getString(R.string.select_songs_for_playlist, playlistName))
             .setMultiChoiceItems(songTitles, selectedItems) { _, which, isChecked ->
                 selectedItems[which] = isChecked

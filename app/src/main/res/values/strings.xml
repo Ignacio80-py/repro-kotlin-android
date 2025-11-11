@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Application music</string>
+    <string name="app_name">NAME</string>
     <string name="ninguna_cancion_seleccionada">Ninguna canción seleccionada</string>
     <string name="no_songs_loaded">No hay canciones cargadas</string>
     <string name="current_playlist">Lista de reproducción actual</string>
