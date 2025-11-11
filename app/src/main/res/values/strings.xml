@@ -19,19 +19,19 @@
     <string name="load">Cargar</string>
     <string name="delete">Eliminar</string>
     <string name="delete_playlist_title">Eliminar lista de reproducción</string>
-    <string name="delete_playlist_message">¿Seguro que quieres eliminar la lista de reproducción "%s"?</string>
-    <string name="playlist_deleted">Lista de reproducción "%s" eliminada</string>
+    <string name="delete_playlist_message">¿Seguro que quieres eliminar la lista de reproducción \"%s\"?</string>
+    <string name="playlist_deleted">Lista de reproducción \"%s\" eliminada</string>
     <string name="load_some_songs_first">Carga algunas canciones primero</string>
     <string name="playlist_name_hint">Nombre de la lista</string>
     <string name="next">Siguiente</string>
     <string name="please_enter_a_name">Por favor, introduce un nombre</string>
-    <string name="select_songs_for_playlist">Seleccionar canciones para "%s"</string>
+    <string name="select_songs_for_playlist">Seleccionar canciones para \"%s\"</string>
     <string name="save">Guardar</string>
     <string name="no_songs_selected">No se seleccionaron canciones</string>
-    <string name="playlist_saved">Lista de reproducción "%s" guardada</string>
-    <string name="could_not_load_playlist">No se pudo cargar la lista de reproducción "%s"</string>
-    <string name="playlist_loaded">Lista de reproducción "%s" cargada</string>
-    <string name="playlist_is_empty">La lista de reproducción "%s" está vacía</string>
+    <string name="playlist_saved">Lista de reproducción \"%s\" guardada</string>
+    <string name="could_not_load_playlist">No se pudo cargar la lista de reproducción \"%s\"</string>
+    <string name="playlist_loaded">Lista de reproducción \"%s\" cargada</string>
+    <string name="playlist_is_empty">La lista de reproducción \"%s\" está vacía</string>
     <string name="permission_denied">Permiso denegado</string>
     <string name="shuffle_on">Aleatorio activado</string>
     <string name="shuffle_off">Aleatorio desactivado</string>
@@ -50,4 +50,6 @@
     <string name="shuffle_description">Modo aleatorio</string>
     <string name="repeat_description">Modo de repetición</string>
     <string name="play_pause_description">Reproducir o pausar</string>
+    <string name="fast_forward_description">Avanzar 10 segundos</string>
+    <string name="fast_rewind_description">Retroceder 10 segundos</string>
 </resources>

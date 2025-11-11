@@ -50,14 +50,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var timerButton: ImageButton
     private lateinit var currentPlaylistButton: ImageButton
     private lateinit var timerCountdownTextView: TextView
+    private lateinit var fastForwardButton: ImageButton
+    private lateinit var fastRewindButton: ImageButton
 
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var runnable: Runnable
-
-    var playlist = mutableListOf<Uri>()
-    var currentSongIndex = -1
-    var isShuffleOn = false
-    var repeatMode = RepeatMode.OFF
 
     private var sleepTimer: CountDownTimer? = null
 
@@ -65,11 +62,9 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as MusicService.MusicBinder
             musicService = binder.getService()
-
-            musicService?.setMainActivity(this@MainActivity)
             isBound = true
+            musicService?.setMainActivity(this@MainActivity)
             musicService?.hideNotification()
-
             initializeSeekBar()
         }
 
@@ -80,21 +75,21 @@ class MainActivity : AppCompatActivity() {
 
     private val openFilesLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
-            playlist.clear()
+            val uris = mutableListOf<Uri>()
             result.data?.clipData?.let { clipData ->
                 for (i in 0 until clipData.itemCount) {
                     val uri = clipData.getItemAt(i).uri
                     contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    playlist.add(uri)
+                    uris.add(uri)
                 }
             } ?: result.data?.data?.let {
                 contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                playlist.add(it)
+                uris.add(it)
             }
 
-            if (playlist.isNotEmpty()) {
-                currentSongIndex = 0
-                playSong(currentSongIndex)
+            if (uris.isNotEmpty()) {
+                musicService?.setPlaylist(uris, 0)
+                musicService?.playSong(0)
             }
         }
     }
@@ -118,17 +113,21 @@ class MainActivity : AppCompatActivity() {
         timerButton = findViewById(R.id.timer_button)
         currentPlaylistButton = findViewById(R.id.current_playlist_button)
         timerCountdownTextView = findViewById(R.id.timer_countdown_text)
+        fastForwardButton = findViewById(R.id.fast_forward_button)
+        fastRewindButton = findViewById(R.id.fast_rewind_button)
 
         // Set listeners
         openFilesButton.setOnClickListener { openFilePickerWithPermissionCheck() }
         createPlaylistButton.setOnClickListener { showPlaylistManagementDialog() }
-        playPauseButton.setOnClickListener { togglePlayPause() }
-        previousButton.setOnClickListener { playPreviousSong() }
-        nextButton.setOnClickListener { playNextSong() }
+        playPauseButton.setOnClickListener { musicService?.togglePlayPause() }
+        previousButton.setOnClickListener { musicService?.playPreviousSong() }
+        nextButton.setOnClickListener { musicService?.playNextSong() }
         shuffleButton.setOnClickListener { toggleShuffle() }
         repeatButton.setOnClickListener { toggleRepeatMode() }
         timerButton.setOnClickListener { showSleepTimerDialog() }
         currentPlaylistButton.setOnClickListener { showCurrentPlaylistDialog() }
+        fastForwardButton.setOnClickListener { musicService?.fastForward() }
+        fastRewindButton.setOnClickListener { musicService?.rewind() }
 
         progressBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -186,6 +185,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showCurrentPlaylistDialog() {
+        val playlist = musicService?.playlist ?: return
         if (playlist.isEmpty()) {
             Toast.makeText(this, getString(R.string.no_songs_loaded), Toast.LENGTH_SHORT).show()
             return
@@ -194,8 +194,7 @@ class MainActivity : AppCompatActivity() {
         lateinit var dialog: AlertDialog
 
         val adapter = PlaylistAdapter(this, playlist, { position ->
-            currentSongIndex = position
-            playSong(currentSongIndex)
+            musicService?.playSong(position)
             dialog.dismiss()
         }, { position, adapter ->
             removeSongAt(position)
@@ -212,32 +211,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun removeSongAt(position: Int) {
-        if (position < 0 || position >= playlist.size) return
-
-        val wasPlaying = musicService?.isPlaying() ?: false
-        val removedCurrentSong = position == currentSongIndex
-
-        playlist.removeAt(position)
-
-        if (removedCurrentSong) {
-            if (playlist.isEmpty()) {
-                currentSongIndex = -1
-                songTitleTextView.text = getString(R.string.ninguna_cancion_seleccionada)
-                playPauseButton.setImageResource(R.drawable.ic_play)
-                progressBar.progress = 0
-                currentTimeTextView.text = getString(R.string.time_format, 0, 0)
-                totalTimeTextView.text = getString(R.string.time_format_with_minus, getString(R.string.time_format, 0, 0))
-            } else {
-                currentSongIndex = if (position >= playlist.size) 0 else position
-                playSong(currentSongIndex)
-                if (!wasPlaying) {
-                    musicService?.togglePlayPause()
-                    playPauseButton.setImageResource(R.drawable.ic_play)
-                }
-            }
-        } else if (position < currentSongIndex) {
-            currentSongIndex--
-        }
+        musicService?.playlist?.removeAt(position)
+        // Actualizar la UI si es necesario
     }
 
     private fun showSleepTimerDialog() {
@@ -348,6 +323,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun promptForNewPlaylistName() {
+        val playlist = musicService?.playlist ?: return
         if (playlist.isEmpty()) {
             Toast.makeText(this, getString(R.string.load_some_songs_first), Toast.LENGTH_SHORT).show()
             return
@@ -376,6 +352,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showSongSelectionDialog(playlistName: String) {
+        val playlist = musicService?.playlist ?: return
         val songTitles = playlist.map { musicService?.getSongName(it) ?: "" }.toTypedArray()
         val selectedItems = BooleanArray(songTitles.size)
         val selectedSongs = mutableListOf<Uri>()
@@ -423,11 +400,11 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, getString(R.string.could_not_load_playlist, name), Toast.LENGTH_SHORT).show()
             return
         }
+        val playlist = uriString.split(";;;").map { it.toUri() }
 
-        playlist = uriString.split(";;;").map { it.toUri() }.toMutableList()
         if (playlist.isNotEmpty()) {
-            currentSongIndex = 0
-            playSong(currentSongIndex)
+            musicService?.setPlaylist(playlist, 0)
+            musicService?.playSong(0)
             Toast.makeText(this, getString(R.string.playlist_loaded, name), Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(this, getString(R.string.playlist_is_empty, name), Toast.LENGTH_SHORT).show()
@@ -490,68 +467,48 @@ class MainActivity : AppCompatActivity() {
         openFilesLauncher.launch(intent)
     }
 
-    fun playNextSong() {
-        val currentSongIndex = this.currentSongIndex
-        if (playlist.isEmpty()) return
-        val nextSongIndex = if (isShuffleOn) {
-            (0 until playlist.size).random()
-        } else {
-            (currentSongIndex + 1) % playlist.size
-        }
-        this.currentSongIndex = nextSongIndex
-        playSong(nextSongIndex)
-    }
-
-    fun playPreviousSong() {
-        if (playlist.isEmpty()) return
-        val previousSongIndex = if (isShuffleOn) {
-            (0 until playlist.size).random()
-        } else {
-            if (currentSongIndex - 1 < 0) playlist.size - 1 else currentSongIndex - 1
-        }
-        this.currentSongIndex = previousSongIndex
-        playSong(previousSongIndex)
-    }
-
     private fun toggleShuffle() {
-        isShuffleOn = !isShuffleOn
-        musicService?.setShuffleMode(isShuffleOn)
-
-        if (isShuffleOn) {
-            shuffleButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
-        } else {
-            shuffleButton.clearColorFilter()
+        musicService?.let {
+            it.isShuffleOn = !it.isShuffleOn
+            if (it.isShuffleOn) {
+                shuffleButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
+            } else {
+                shuffleButton.clearColorFilter()
+            }
+            val message = if (it.isShuffleOn) getString(R.string.shuffle_on) else getString(R.string.shuffle_off)
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
-        val message = if(isShuffleOn) getString(R.string.shuffle_on) else getString(R.string.shuffle_off)
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun toggleRepeatMode() {
-        repeatMode = when (repeatMode) {
-            RepeatMode.OFF -> RepeatMode.ALL
-            RepeatMode.ALL -> RepeatMode.ONE
-            RepeatMode.ONE -> RepeatMode.OFF
+        musicService?.let {
+            it.repeatMode = when (it.repeatMode) {
+                RepeatMode.OFF -> RepeatMode.ALL
+                RepeatMode.ALL -> RepeatMode.ONE
+                RepeatMode.ONE -> RepeatMode.OFF
+            }
+            updateRepeatButtonIcon()
         }
-        musicService?.setRepeatMode(repeatMode)
-        updateRepeatButtonIcon()
     }
 
     private fun updateRepeatButtonIcon(showToast: Boolean = true) {
-        when (repeatMode) {
-            RepeatMode.OFF -> {
-                repeatButton.setImageResource(R.drawable.ic_repeat)
-                repeatButton.clearColorFilter()
-                if (showToast) Toast.makeText(this, getString(R.string.repeat_off), Toast.LENGTH_SHORT).show()
-            }
-            RepeatMode.ALL -> {
-                repeatButton.setImageResource(R.drawable.ic_repeat)
-                repeatButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
-                if (showToast) Toast.makeText(this, getString(R.string.repeat_all), Toast.LENGTH_SHORT).show()
-            }
-            RepeatMode.ONE -> {
-                repeatButton.setImageResource(R.drawable.ic_repeat_one)
-                repeatButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
-                if (showToast) Toast.makeText(this, getString(R.string.repeat_one), Toast.LENGTH_SHORT).show()
+        musicService?.let {
+            when (it.repeatMode) {
+                RepeatMode.OFF -> {
+                    repeatButton.setImageResource(R.drawable.ic_repeat)
+                    repeatButton.clearColorFilter()
+                    if (showToast) Toast.makeText(this, getString(R.string.repeat_off), Toast.LENGTH_SHORT).show()
+                }
+                RepeatMode.ALL -> {
+                    repeatButton.setImageResource(R.drawable.ic_repeat)
+                    repeatButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
+                    if (showToast) Toast.makeText(this, getString(R.string.repeat_all), Toast.LENGTH_SHORT).show()
+                }
+                RepeatMode.ONE -> {
+                    repeatButton.setImageResource(R.drawable.ic_repeat_one)
+                    repeatButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
+                    if (showToast) Toast.makeText(this, getString(R.string.repeat_one), Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -581,41 +538,17 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private fun togglePlayPause() {
-        musicService?.togglePlayPause()
-        updatePlayPauseButton()
-    }
-
-    private fun playSong(index: Int) {
-        if (index < 0 || index >= playlist.size) return
-
-        val uri = playlist[index]
-        val title = musicService?.getSongName(uri) ?: ""
-
-        musicService?.let { service ->
-            service.setPlaylist(playlist, index)
-            service.setShuffleMode(isShuffleOn)
-            service.setRepeatMode(repeatMode)
-        }
-
-        musicService?.playSong(uri, title)
-        updatePlayPauseButton()
-        songTitleTextView.text = title
-        musicService?.getMediaPlayer()?.let{
-            totalTimeTextView.text = getString(R.string.time_format_with_minus, formatTime(it.duration.toLong()))
-            progressBar.max = it.duration
-        }
-    }
-
     private fun saveLastSession() {
         val sharedPrefs = getSharedPreferences("session_prefs", MODE_PRIVATE)
-        sharedPrefs.edit().apply {
-            val uriStrings = playlist.joinToString(";;;") { it.toString() }
-            putString("last_playlist_uris", uriStrings)
-            putInt("last_song_index", currentSongIndex)
-            putBoolean("last_shuffle_state", isShuffleOn)
-            putInt("last_repeat_mode", repeatMode.ordinal)
-            apply()
+        musicService?.let {
+            sharedPrefs.edit().apply {
+                val uriStrings = it.playlist.joinToString(";;;") { it.toString() }
+                putString("last_playlist_uris", uriStrings)
+                putInt("last_song_index", it.currentSongIndex)
+                putBoolean("last_shuffle_state", it.isShuffleOn)
+                putInt("last_repeat_mode", it.repeatMode.ordinal)
+                apply()
+            }
         }
     }
 
@@ -623,26 +556,15 @@ class MainActivity : AppCompatActivity() {
         val sharedPrefs = getSharedPreferences("session_prefs", MODE_PRIVATE)
         val uriString = sharedPrefs.getString("last_playlist_uris", null)
         if (!uriString.isNullOrEmpty()) {
-            playlist = uriString.split(";;;").map { it.toUri() }.toMutableList()
-            currentSongIndex = sharedPrefs.getInt("last_song_index", -1)
-
-            if (playlist.isNotEmpty() && currentSongIndex != -1 && currentSongIndex < playlist.size) {
-                songTitleTextView.text = musicService?.getSongName(playlist[currentSongIndex]) ?: ""
-                totalTimeTextView.text = getString(R.string.time_format_with_minus, getString(R.string.time_format, 0, 0))
-                currentTimeTextView.text = getString(R.string.time_format, 0, 0)
-                progressBar.progress = 0
-            }
+            val playlist = uriString.split(";;;").map { it.toUri() }.toMutableList()
+            val currentSongIndex = sharedPrefs.getInt("last_song_index", -1)
+            musicService?.setPlaylist(playlist, currentSongIndex)
         }
 
-        isShuffleOn = sharedPrefs.getBoolean("last_shuffle_state", false)
-        repeatMode = RepeatMode.entries[sharedPrefs.getInt("last_repeat_mode", 0)]
+        musicService?.isShuffleOn = sharedPrefs.getBoolean("last_shuffle_state", false)
+        musicService?.repeatMode = RepeatMode.entries[sharedPrefs.getInt("last_repeat_mode", 0)]
 
-        if (isShuffleOn) {
-            shuffleButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
-        } else {
-            shuffleButton.clearColorFilter()
-        }
-        updateRepeatButtonIcon(showToast = false)
+        updateUIFromService()
     }
 
     override fun onDestroy() {
@@ -667,15 +589,15 @@ class MainActivity : AppCompatActivity() {
 
     fun onSongChanged() {
         musicService?.let { service ->
-            currentSongIndex = service.getCurrentIndex()
-            if (currentSongIndex >= 0 && currentSongIndex < playlist.size) {
-                songTitleTextView.text = musicService?.getSongName(playlist[currentSongIndex]) ?: ""
+            if (service.currentSongIndex != -1) {
+                songTitleTextView.text = service.getSongName(service.playlist[service.currentSongIndex])
                 service.getMediaPlayer()?.let { mp ->
-                    totalTimeTextView.text = getString(R.string.time_format_with_minus, formatTime(mp.duration.toLong()))
                     progressBar.max = mp.duration
+                    totalTimeTextView.text = getString(R.string.time_format_with_minus, formatTime(mp.duration.toLong()))
                     progressBar.progress = 0
-                    currentTimeTextView.text = getString(R.string.time_format, 0, 0)
+                    currentTimeTextView.text = formatTime(0)
                 }
+                updatePlayPauseButton()
             }
         }
     }
@@ -683,20 +605,24 @@ class MainActivity : AppCompatActivity() {
     fun updateUIFromService() {
         updatePlayPauseButton()
         onSongChanged()
+        updateShuffleAndRepeatButtons()
+    }
 
-        // Actualizar botones de shuffle y repeat
-        if (isShuffleOn) {
-            shuffleButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
-        } else {
-            shuffleButton.clearColorFilter()
+    private fun updateShuffleAndRepeatButtons() {
+        musicService?.let {
+            if (it.isShuffleOn) {
+                shuffleButton.setColorFilter(ContextCompat.getColor(this, android.R.color.white), PorterDuff.Mode.SRC_IN)
+            } else {
+                shuffleButton.clearColorFilter()
+            }
+            updateRepeatButtonIcon(showToast = false)
         }
-        updateRepeatButtonIcon(showToast = false)
     }
 
     fun onPlaylistEnded() {
         playPauseButton.setImageResource(R.drawable.ic_play)
         progressBar.progress = 0
-        currentTimeTextView.text = getString(R.string.time_format, 0, 0)
-        totalTimeTextView.text = getString(R.string.time_format_with_minus, getString(R.string.time_format, 0, 0))
+        currentTimeTextView.text = formatTime(0)
+        totalTimeTextView.text = getString(R.string.time_format_with_minus, formatTime(0))
     }
 }
