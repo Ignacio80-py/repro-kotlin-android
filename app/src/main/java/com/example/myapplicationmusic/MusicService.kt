@@ -150,24 +150,29 @@ class MusicService : Service() {
         val title = getSongName(uri)
 
         mediaPlayer?.release()
-        mediaPlayer = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
-            setDataSource(applicationContext, uri)
-            setOnPreparedListener { mp ->
-                updateMetadata(title, mp.duration.toLong())
-                mp.start()
-                updatePlaybackState()
-                startProgressUpdater()
-                showNotification()
-                mainActivity?.onSongChanged()
+        try {
+            mediaPlayer = MediaPlayer().apply {
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build()
+                )
+                setDataSource(applicationContext, uri)
+                setOnPreparedListener { mp ->
+                    updateMetadata(title, mp.duration.toLong())
+                    mp.start()
+                    updatePlaybackState()
+                    startProgressUpdater()
+                    showNotification()
+                    mainActivity?.onSongChanged()
+                }
+                setOnCompletionListener { onSongCompletion() }
+                prepareAsync()
             }
-            setOnCompletionListener { onSongCompletion() }
-            prepareAsync()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            android.widget.Toast.makeText(applicationContext, "Error playing song", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -228,9 +233,9 @@ class MusicService : Service() {
     fun playPreviousSong() {
         if (playlist.isEmpty()) return
         currentSongIndex = if (isShuffleOn) {
-            if (currentSongIndex - 1 < 0) playlist.size - 1 else currentSongIndex - 1
-        } else {
             (0 until playlist.size).filter { it != currentSongIndex }.randomOrNull() ?: 0
+        } else {
+            if (currentSongIndex - 1 < 0) playlist.size - 1 else currentSongIndex - 1
         }
         playSong(currentSongIndex)
     }
